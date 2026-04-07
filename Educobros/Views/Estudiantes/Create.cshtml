@@ -1,0 +1,47 @@
+﻿@model EduCobros.Models.Estudiante
+
+@{
+    ViewData["Title"] = "Nuevo Estudiante";
+}
+
+<h2>➕ Registrar Nuevo Estudiante</h2>
+
+<form asp-action="Create" method="post">
+    <div class="mb-3">
+        <label asp-for="Nombre" class="form-label"></label>
+        <input asp-for="Nombre" class="form-control" />
+        <span asp-validation-for="Nombre" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="Grado" class="form-label"></label>
+        <select asp-for="Grado" class="form-select">
+            <option value="">-- Seleccionar --</option>
+            <option>1ro Primaria</option>
+            <option>2do Primaria</option>
+            <option>3ro Primaria</option>
+            <option>4to Primaria</option>
+            <option>5to Primaria</option>
+            <option>6to Primaria</option>
+            <option>1ro Sec.</option>
+            <option>2do Sec.</option>
+            <option>3ro Sec.</option>
+        </select>
+        <span asp-validation-for="Grado" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="Mensualidad" class="form-label"></label>
+        <input asp-for="Mensualidad" class="form-control" type="number" />
+        <span asp-validation-for="Mensualidad" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="MesesDebidos" class="form-label"></label>
+        <input asp-for="MesesDebidos" class="form-control" type="number" value="0" />
+        <span asp-validation-for="MesesDebidos" class="text-danger"></span>
+    </div>
+
+    <button type="submit" class="btn btn-primary">💾 Guardar Estudiante</button>
+    <a asp-action="Index" class="btn btn-secondary">Cancelar</a>
+</form>

@@ -1,0 +1,48 @@
+﻿@model List<EduCobros.Models.Estudiante>
+
+@{
+    ViewData["Title"] = "Estudiantes";
+}
+
+<h2>👨‍🎓 Estudiantes y Balances</h2>
+
+<a asp-action="Create" class="btn btn-primary mb-3">
+    ➕ Nuevo Estudiante
+</a>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Nombre</th>
+            <th>Grado</th>
+            <th>Mensualidad</th>
+            <th>Estado</th>
+            <th>Acciones</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var est in Model)
+        {
+            <tr>
+                <td>@est.Id</td>
+                <td>@est.Nombre</td>
+                <td>@est.Grado</td>
+                <td>RD$ @est.Mensualidad.ToString("N0")</td>
+                <td>@est.Estado</td>
+                <td>
+                    <a asp-action="Delete" asp-route-id="@est.Id"
+                       class="btn btn-sm btn-danger"
+                       onclick="return confirm('¿Eliminar?')">
+                        🗑️
+                    </a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<p>
+    Total: @Model.Count estudiantes |
+    En mora: @Model.Count(e => e.MesesDebidos > 0)
+</p>
