@@ -27,11 +27,18 @@ namespace Educobros.Controllers
         }
 
         // GET: Pagos/Create
-        public IActionResult Create()
+        public IActionResult Create(int? estudianteId)
         {
-            CargarEstudiantes();
-            return View();
-        }
+            CargarEstudiantes(estudianteId);
+
+            var pago = new Pago();
+
+            if (estudianteId.HasValue)
+                pago.EstudianteId = estudianteId.Value;
+
+            return View(pago);
+        }  
+        
 
         // POST: Pagos/Create
         [HttpPost]

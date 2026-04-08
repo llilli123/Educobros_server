@@ -1,5 +1,62 @@
-﻿@*
-    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-*@
+﻿@model EduCobros.Models.Pago
+
 @{
+    ViewData["Title"] = "Registrar Pago";
+}
+
+<h1 class="mb-4">Registrar Pago</h1>
+
+<div class="row">
+    <div class="col-md-6">
+        <form asp-action="Create" method="post">
+            <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+            <div class="mb-3">
+                <label asp-for="EstudianteId" class="form-label"></label>
+                <select asp-for="EstudianteId" asp-items="ViewBag.EstudianteId" class="form-select">
+                    <option value="">-- Selecciona un estudiante --</option>
+                </select>
+                <span asp-validation-for="EstudianteId" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Concepto" class="form-label"></label>
+                <input asp-for="Concepto" class="form-control" />
+                <span asp-validation-for="Concepto" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Monto" class="form-label"></label>
+                <input asp-for="Monto" class="form-control" />
+                <span asp-validation-for="Monto" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Fecha" class="form-label"></label>
+                <input asp-for="Fecha" type="date" class="form-control" />
+                <span asp-validation-for="Fecha" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Metodo" class="form-label"></label>
+                <input asp-for="Metodo" class="form-control" />
+                <span asp-validation-for="Metodo" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Notas" class="form-label"></label>
+                <textarea asp-for="Notas" class="form-control" rows="3"></textarea>
+                <span asp-validation-for="Notas" class="text-danger"></span>
+            </div>
+
+            <button type="submit" class="btn btn-success">Guardar</button>
+            <a asp-action="Index" class="btn btn-secondary">Volver</a>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
 }
