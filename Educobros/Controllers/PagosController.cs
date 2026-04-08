@@ -27,9 +27,9 @@ namespace Educobros.Controllers
         }
 
         // GET: Pagos/Create
-        public async Task<IActionResult> Create()
+        public IActionResult Create()
         {
-            await CargarEstudiantesAsync();
+            CargarEstudiantes();
             return View();
         }
 
@@ -40,47 +40,19 @@ namespace Educobros.Controllers
         {
             if (!ModelState.IsValid)
             {
-                await CargarEstudiantesAsync(pago.EstudianteId);
-                return View(pago);
+                _context.Add(pago);
+                await _context.SaveChangesAsync();
+                return RedirectToAction("Index");
             }
 
-            // Validación: el estudiante debe existir
-            var estudianteExiste = await _context.Estudiantes
-                .AnyAsync(e => e.Id == pago.EstudianteId);
-
-            if (!estudianteExiste)
-            {
-                ModelState.AddModelError("EstudianteId", "El estudiante seleccionado no existe.");
-                await CargarEstudiantesAsync(pago.EstudianteId);
-                return View(pago);
-            }
-
-            _context.Pagos.Add(pago);
-            await _context.SaveChangesAsync();
-
-            return RedirectToAction(nameof(Index));
-        }
-
-        // GET: Pagos/Delete/5
-        public async Task<IActionResult> Delete(int? id)
-        {
-            if (id == null)
-                return NotFound();
-
-            var pago = await _context.Pagos
-                .Include(p => p.Estudiante)
-                .FirstOrDefaultAsync(p => p.Id == id);
-
-            if (pago == null)
-                return NotFound();
-
+            CargarEstudiantes(pago.EstudianteId);
             return View(pago);
         }
 
-        // POST: Pagos/Delete/5
-        [HttpPost, ActionName("Delete")]
+        // GET: Pagos/Delete/5
+        [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(int id)
+        public async Task<IActionResult> Delete(int id)
         {
             var pago = await _context.Pagos.FindAsync(id);
 
@@ -90,21 +62,18 @@ namespace Educobros.Controllers
                 await _context.SaveChangesAsync();
             }
 
-            return RedirectToAction(nameof(Index));
+            return RedirectToAction("Index");
         }
 
-        private async Task CargarEstudiantesAsync(object? estudianteSeleccionado = null)
+        private void CargarEstudiantes(object? estudianteSeleccionado = null)
         {
-            var estudiantes = await _context.Estudiantes
-                .OrderBy(e => e.Nombre)
-                .ToListAsync();
-
             ViewBag.EstudianteId = new SelectList(
-                estudiantes,
+                _context.Estudiantes.ToList(),
                 "Id",
-                "NombreCompleto",
+                "Nombre",
                 estudianteSeleccionado
             );
         }
+    
     }
 }
