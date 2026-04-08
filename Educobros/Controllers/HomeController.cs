@@ -1,5 +1,5 @@
 using Educobros.Models;
-using EduCobros.Data;
+using Educobros.Data;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Diagnostics;

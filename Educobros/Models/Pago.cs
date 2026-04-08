@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace EduCobros.Models
+namespace Educobros.Models
 {
     public class Pago
     {

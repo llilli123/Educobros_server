@@ -1,7 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using EduCobros.Models;
+using Educobros.Models;
 
-namespace EduCobros.Data
+namespace Educobros.Data
 {
     public class EduCobrosContext : DbContext
     {

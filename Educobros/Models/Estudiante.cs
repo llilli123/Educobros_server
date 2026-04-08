@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using Educobros.Controllers;
 
-namespace EduCobros.Models
+namespace Educobros.Models
 {
     public class Estudiante
     {

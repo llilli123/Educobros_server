@@ -1,4 +1,4 @@
-﻿@model List<EduCobros.Models.Estudiante>
+﻿@model List<Educobros.Models.Estudiante>
 
 @{
     ViewData["Title"] = "Estudiantes";
@@ -31,11 +31,11 @@
                 <td>RD$ @est.Mensualidad.ToString("N0")</td>
                 <td>@est.Estado</td>
                 <td>
-                    <a asp-action="Delete" asp-route-id="@est.Id"
+                    <form asp-action="Delete" asp-route-id="@est.Id"
                        class="btn btn-sm btn-danger"
                        onclick="return confirm('¿Eliminar?')">
                         🗑️
-                    </a>
+                    </form>
                 </td>
             </tr>
         }
