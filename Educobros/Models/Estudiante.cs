@@ -1,5 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
-using Educobros.Controllers;
+
 
 namespace Educobros.Models
 {

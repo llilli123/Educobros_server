@@ -1,4 +1,4 @@
-using EduCobros.Data;
+using Educobros.Data;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);

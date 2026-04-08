@@ -31,10 +31,16 @@
                 <td>RD$ @est.Mensualidad.ToString("N0")</td>
                 <td>@est.Estado</td>
                 <td>
-                    <form asp-action="Delete" asp-route-id="@est.Id"
-                       class="btn btn-sm btn-danger"
-                       onclick="return confirm('¿Eliminar?')">
-                        🗑️
+                    <form asp-action="Delete"
+                          asp-route-id="@est.Id"
+                          method="post"
+                          style="display:inline;">
+                        @Html.AntiForgeryToken()
+                        <button type="submit"
+                                class="btn btn-sm btn-danger"
+                                onclick="return confirm('¿Eliminar?')">
+                            🗑️
+                        </button>
                     </form>
                 </td>
             </tr>
