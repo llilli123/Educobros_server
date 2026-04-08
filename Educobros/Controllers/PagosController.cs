@@ -38,7 +38,7 @@ namespace Educobros.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(Pago pago)
         {
-            if (!ModelState.IsValid)
+            if (ModelState.IsValid)
             {
                 _context.Add(pago);
                 await _context.SaveChangesAsync();
