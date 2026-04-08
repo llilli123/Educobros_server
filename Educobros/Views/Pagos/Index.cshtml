@@ -1,0 +1,47 @@
+﻿@model IEnumerable<EduCobros.Models.Pago>
+
+@{
+    ViewData["Title"] = "Pagos";
+}
+
+<h1 class="mb-4">Pagos</h1>
+
+<p>
+    <a asp-action="Create" class="btn btn-primary">Registrar Pago</a>
+</p>
+
+<table class="table table-bordered table-striped">
+    <thead class="table-dark">
+        <tr>
+            <th>Estudiante</th>
+            <th>Concepto</th>
+            <th>Monto</th>
+            <th>Fecha</th>
+            <th>Método</th>
+            <th>Notas</th>
+            <th style="width: 120px;">Acciones</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var pago in Model)
+        {
+            <tr>
+                <td>@(pago.Estudiante?.Nombre ?? "Sin estudiante")</td>
+                <td>@pago.Concepto</td>
+                <td>@pago.Monto.ToString("N2")</td>
+                <td>@pago.Fecha.ToString("dd/MM/yyyy")</td>
+                <td>@pago.Metodo</td>
+                <td>@(string.IsNullOrWhiteSpace(pago.Notas) ? "-" : pago.Notas)</td>
+                <td>
+                    <form asp-action="Delete" asp-route-id="@pago.Id" method="post" style="display:inline;">
+                        @Html.AntiForgeryToken()
+                        <button type="submit" class="btn btn-danger btn-sm"
+                                onclick="return confirm('¿Seguro que deseas eliminar este pago?');">
+                            Eliminar
+                        </button>
+                    </form>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
