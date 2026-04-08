@@ -45,15 +45,44 @@ namespace Educobros.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(Pago pago)
         {
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
-                _context.Add(pago);
-                await _context.SaveChangesAsync();
-                return RedirectToAction("Index");
+                CargarEstudiantes(pago.EstudianteId);
+                return View(pago);
             }
 
-            CargarEstudiantes(pago.EstudianteId);
-            return View(pago);
+            var estudiante = await _context.Estudiantes.FindAsync(pago.EstudianteId);
+
+            if (estudiante == null)
+            {
+                ModelState.AddModelError("EstudianteId", "El estudiante seleccionado no existe.");
+                CargarEstudiantes(pago.EstudianteId);
+                return View(pago);
+            }
+
+            // Guardar el pago
+            _context.Pagos.Add(pago);
+
+            // Aplicar el pago a la deuda del estudiante
+            if (estudiante.MesesDebidos > 0 && estudiante.Mensualidad > 0)
+            {
+                int mesesCubiertos = (int)(pago.Monto / estudiante.Mensualidad);
+
+                if (mesesCubiertos > 0)
+                {
+                    estudiante.MesesDebidos -= mesesCubiertos;
+
+                    if (estudiante.MesesDebidos < 0)
+                    {
+                        estudiante.MesesDebidos = 0;
+                    }
+
+                    _context.Estudiantes.Update(estudiante);
+                }
+            }
+
+            await _context.SaveChangesAsync();
+            return RedirectToAction("Index");
         }
 
         // GET: Pagos/Delete/5
