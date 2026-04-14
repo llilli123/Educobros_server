@@ -1,10 +1,12 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using Educobros.Data;
+﻿using Educobros.Data;
 using Educobros.Models;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace Educobros.Controllers
 {
+    [Authorize]
     public class EstudiantesController : Controller
     {
         private readonly EduCobrosContext _context;
@@ -23,6 +25,7 @@ namespace Educobros.Controllers
         }
 
         // GET: /Estudiantes/Create
+        [Authorize(Roles = "Admin,Secretaria")]
         public IActionResult Create()
         {
             return View();
@@ -31,6 +34,7 @@ namespace Educobros.Controllers
         // POST: /Estudiantes/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin,Secretaria")]
         public async Task<IActionResult> Create(Estudiante estudiante)
         {
             if (ModelState.IsValid)
@@ -43,6 +47,7 @@ namespace Educobros.Controllers
         }
 
         // GET: /Estudiantes/Edit/5
+        [Authorize(Roles = "Admin,Secretaria")]
         public async Task<IActionResult> Edit(int id)
         {
             var est = await _context.Estudiantes.FindAsync(id);
@@ -53,6 +58,7 @@ namespace Educobros.Controllers
         // POST: /Estudiantes/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin,Secretaria")]
         public async Task<IActionResult> Edit(int id, Estudiante estudiante)
         {
             if (id != estudiante.Id) return NotFound();
@@ -68,6 +74,7 @@ namespace Educobros.Controllers
         // POST: /Estudiantes/Delete/5
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Delete(int id)
         {
             var est = await _context.Estudiantes.FindAsync(id);

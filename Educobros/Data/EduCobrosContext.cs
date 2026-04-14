@@ -1,9 +1,10 @@
-﻿using Microsoft.EntityFrameworkCore;
-using Educobros.Models;
+﻿using Educobros.Models;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 
 namespace Educobros.Data
 {
-    public class EduCobrosContext : DbContext
+    public class EduCobrosContext : IdentityDbContext
     {
         public EduCobrosContext(DbContextOptions<EduCobrosContext> options)
             : base(options) { }
@@ -15,6 +16,9 @@ namespace Educobros.Data
         // Seed Data: datos iniciales
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+
+            base.OnModelCreating(modelBuilder);
+
             modelBuilder.Entity<Estudiante>().HasData(
                 new Estudiante { Id = 1, Nombre = "María García Pérez", Grado = "4to Primaria", Mensualidad = 4500, MesesDebidos = 0 },
                 new Estudiante { Id = 2, Nombre = "Carlos Rodríguez", Grado = "6to Primaria", Mensualidad = 4500, MesesDebidos = 2 },

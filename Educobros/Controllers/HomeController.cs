@@ -1,58 +1,36 @@
+﻿using Educobros.Data;
 using Educobros.Models;
-using Educobros.Data;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using System.Diagnostics;
+using Microsoft.Extensions.Caching.Memory;
 
-namespace Educobros.Controllers
+public class HomeController : Controller
 {
-    public class HomeController : Controller
+    private readonly EduCobrosContext _context;
+    private readonly IMemoryCache _cache;
+
+    public HomeController(EduCobrosContext context, IMemoryCache cache)
     {
-        private readonly ILogger<HomeController> _logger;
-        private readonly EduCobrosContext _context;
+        _context = context;
+        _cache = cache;
+    }
 
-        public HomeController(ILogger<HomeController> logger, EduCobrosContext context)
+    public IActionResult Index()
+    {
+        // Intenta obtener del caché primero
+        if (!_cache.TryGetValue("dashboard_stats", out DashboardVM stats))
         {
-            _logger = logger;
-            _context = context;
-        }
-        public async Task<IActionResult> Index()
-        {
-            // Total de estudiantes
-            ViewBag.TotalEstudiantes = await _context.Estudiantes.CountAsync();
+            // No está en caché → consultar BD
+            stats = new DashboardVM
+            {
+                TotalEstudiantes = _context.Estudiantes.Count(),
+                Recaudado = _context.Pagos.Sum(p => p.Monto),
+                Pendientes = _context.Estudiantes.Count(e => e.MesesDebidos > 0)
+            };
 
-            // Estudiantes con deuda
-            ViewBag.Pendientes = await _context.Estudiantes
-                .CountAsync(e => e.MesesDebidos > 0);
-
-            // Total recaudado (suma de todos los pagos)
-            ViewBag.Recaudado = await _context.Pagos
-                .SumAsync(p => p.Monto);
-
-            // Total en mora
-            ViewBag.Mora = await _context.Estudiantes
-                .Where(e => e.MesesDebidos > 0)
-                .SumAsync(e => e.Mensualidad * e.MesesDebidos);
-
-            // �ltimos 5 pagos registrados
-            ViewBag.UltimosPagos = await _context.Pagos
-                .Include(p => p.Estudiante)
-                .OrderByDescending(p => p.Fecha)
-                .Take(5)
-                .ToListAsync();
-
-            return View();
+            // Guardar en caché por 5 minutos
+            _cache.Set("dashboard_stats", stats, TimeSpan.FromMinutes(5));
         }
 
-        public IActionResult Privacy()
-        {
-            return View();
-        }
-
-        [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
-        public IActionResult Error()
-        {
-            return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
-        }
+        return View(stats);
     }
 }

@@ -1,11 +1,13 @@
 ﻿using Educobros.Data;
 using Educobros.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 
 namespace Educobros.Controllers
 {
+    [Authorize]
     public class PagosController : Controller
     {
         private readonly EduCobrosContext _context;

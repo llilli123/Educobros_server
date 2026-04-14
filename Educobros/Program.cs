@@ -1,15 +1,28 @@
 using Educobros.Data;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
+builder.Services.AddMemoryCache();
 builder.Services.AddControllersWithViews();
-
 builder.Services.AddDbContext<EduCobrosContext>(options =>
     options.UseSqlServer(
         builder.Configuration.GetConnectionString("DefaultConnection")
     ));
+
+builder.Services.AddDefaultIdentity<IdentityUser>(options => {
+    // Reglas de contraseña
+    options.Password.RequireDigit = true;
+    options.Password.RequiredLength = 6;
+    options.Password.RequireUppercase = false;
+    options.Password.RequireNonAlphanumeric = false;
+    // Lockout después de 5 intentos fallidos
+    options.Lockout.MaxFailedAccessAttempts = 5;
+})
+.AddRoles<IdentityRole>()
+.AddEntityFrameworkStores<EduCobrosContext>();
 
 
 builder.Services.AddEndpointsApiExplorer();
@@ -27,13 +40,21 @@ if (!app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();
-
 app.UseRouting();
 
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Estudiantes}/{action=Index}/{id?}");
+
+
+app.MapRazorPages();
+
+using (var scope = app.Services.CreateScope())
+{
+    await SeedData.Initialize(scope.ServiceProvider);
+}
 
 app.Run();
