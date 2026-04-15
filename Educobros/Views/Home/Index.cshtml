@@ -6,3 +6,31 @@
     <h1 class="display-4">Welcome</h1>
     <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
 </div>
+<!-- Agregar al final de la vista del Home/Index -->
+<div style="max-width:600px;margin:2rem auto">
+    <canvas id="graficaPagos"></canvas>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    async function cargarGrafica() {
+      const res = await fetch('/api/estudiantesapi/dashboard');
+      const data = await res.json();
+
+      new Chart(document.getElementById('graficaPagos'), {
+        type: 'doughnut',
+        data: {
+          labels: ['Recaudado', 'En Mora'],
+          datasets: [{
+            data: [data.totalRecaudado, data.totalMora],
+            backgroundColor: ['#34d399', '#fb7185'],
+            borderWidth: 0
+          }]
+        },
+        options: {
+          plugins: { legend: { position: 'bottom' } }
+        }
+      });
+    }
+    cargarGrafica();
+</script>
