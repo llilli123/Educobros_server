@@ -13,12 +13,12 @@ builder.Services.AddDbContext<EduCobrosContext>(options =>
     ));
 
 builder.Services.AddDefaultIdentity<IdentityUser>(options => {
-    // Reglas de contraseña
+    // Reglas de contraseï¿½a
     options.Password.RequireDigit = true;
     options.Password.RequiredLength = 6;
     options.Password.RequireUppercase = false;
     options.Password.RequireNonAlphanumeric = false;
-    // Lockout después de 5 intentos fallidos
+    // Lockout despuï¿½s de 5 intentos fallidos
     options.Lockout.MaxFailedAccessAttempts = 5;
 })
 .AddRoles<IdentityRole>()

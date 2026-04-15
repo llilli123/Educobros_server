@@ -1,0 +1,85 @@
+﻿@using Microsoft.AspNetCore.Identity
+@inject SignInManager<IdentityUser> SignInManager
+@inject UserManager<IdentityUser> UserManager
+
+<style>
+    .auth-nav {
+        display: flex;
+        align-items: center;
+        gap: 0.8rem;
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    .auth-user {
+        color: #e2e8f0;
+        font-weight: 600;
+        white-space: nowrap;
+    }
+
+    .auth-login-btn,
+    .auth-logout-btn {
+        border: none;
+        border-radius: 12px;
+        padding: 0.65rem 1rem;
+        font-weight: 700;
+        text-decoration: none;
+        transition: 0.2s ease;
+    }
+
+    .auth-login-btn {
+        color: white;
+        background: linear-gradient(90deg, #5b6cff, #a61cff);
+        box-shadow: 0 10px 24px rgba(121, 78, 255, 0.25);
+    }
+
+        .auth-login-btn:hover {
+            color: white;
+            opacity: 0.96;
+        }
+
+    .auth-logout-btn {
+        background: rgba(239, 68, 68, 0.12);
+        color: #ff9ca8;
+        border: 1px solid rgba(239, 68, 68, 0.18);
+    }
+
+        .auth-logout-btn:hover {
+            background: rgba(239, 68, 68, 0.18);
+            color: #ffc1c9;
+        }
+</style>
+
+<ul class="auth-nav">
+    @if (SignInManager.IsSignedIn(User))
+    {
+        <li>
+            <span class="auth-user">
+                Hola, @UserManager.GetUserName(User)
+            </span>
+        </li>
+
+        <li>
+            <form asp-area="Identity"
+                  asp-page="/Account/Logout"
+                  asp-route-returnUrl="/Identity/Account/Login"
+                  method="post"
+                  class="m-0">
+                <button type="submit" class="auth-logout-btn">
+                    Cerrar sesión
+                </button>
+            </form>
+        </li>
+    }
+    else
+    {
+        <li>
+            <a class="auth-login-btn"
+               asp-area="Identity"
+               asp-page="/Account/Login">
+                Iniciar sesión
+            </a>
+        </li>
+    }
+</ul>

@@ -2,46 +2,709 @@
 
 @{
     ViewData["Title"] = "Pagos";
+
+    var pagos = Model?.ToList() ?? new List<Educobros.Models.Pago>();
+
+    var hoy = DateTime.Today;
+    var inicioMes = new DateTime(hoy.Year, hoy.Month, 1);
+
+    var recaudadoHoy = pagos
+        .Where(p => p.Fecha.Date == hoy)
+        .Sum(p => p.Monto);
+
+    var pagosEsteMes = pagos
+        .Count(p => p.Fecha.Date >= inicioMes && p.Fecha.Date <= hoy);
+
+    var metodosActivos = pagos
+        .Where(p => !string.IsNullOrWhiteSpace(p.Metodo))
+        .Select(p => p.Metodo.Trim().ToLower())
+        .Distinct()
+        .Count();
 }
 
-<h1 class="mb-4">Pagos</h1>
+<style>
+    .payments-page {
+        background: radial-gradient(circle at top left, rgba(91, 108, 255, 0.18), transparent 25%), radial-gradient(circle at bottom right, rgba(166, 28, 255, 0.12), transparent 25%), linear-gradient(135deg, #050816, #0b1020 45%, #0d1226);
+        min-height: calc(100vh - 120px);
+        padding: 2rem;
+        border-radius: 24px;
+        color: #f8fafc;
+    }
 
-<p>
-    <a asp-action="Create" class="btn btn-primary">Registrar Pago</a>
-</p>
+    .payments-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 1rem;
+        margin-bottom: 1.75rem;
+        flex-wrap: wrap;
+    }
 
-<table class="table table-bordered table-striped">
-    <thead class="table-dark">
-        <tr>
-            <th>Estudiante</th>
-            <th>Concepto</th>
-            <th>Monto</th>
-            <th>Fecha</th>
-            <th>Método</th>
-            <th>Notas</th>
-            <th style="width: 120px;">Acciones</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var pago in Model)
-        {
-            <tr>
-                <td>@(pago.Estudiante?.Nombre ?? "Sin estudiante")</td>
-                <td>@pago.Concepto</td>
-                <td>@pago.Monto.ToString("N2")</td>
-                <td>@pago.Fecha.ToString("dd/MM/yyyy")</td>
-                <td>@pago.Metodo</td>
-                <td>@(string.IsNullOrWhiteSpace(pago.Notas) ? "-" : pago.Notas)</td>
-                <td>
-                    <form asp-action="Delete" asp-route-id="@pago.Id" method="post" style="display:inline;">
-                        @Html.AntiForgeryToken()
-                        <button type="submit" class="btn btn-danger btn-sm"
-                                onclick="return confirm('¿Seguro que deseas eliminar este pago?');">
-                            Eliminar
-                        </button>
-                    </form>
-                </td>
-            </tr>
+    .payments-title {
+        font-size: 3rem;
+        font-weight: 800;
+        margin: 0;
+        letter-spacing: -0.03em;
+        color: #ffffff;
+    }
+
+    .payments-subtitle {
+        margin-top: 0.35rem;
+        color: #94a3b8;
+        font-size: 1.08rem;
+    }
+
+    .btn-modern {
+        border: none;
+        border-radius: 16px;
+        padding: 0.95rem 1.4rem;
+        font-weight: 700;
+        text-decoration: none;
+        color: white;
+        background: linear-gradient(90deg, #5b6cff, #a61cff);
+        box-shadow: 0 10px 30px rgba(121, 78, 255, 0.28);
+        transition: transform 0.15s ease, opacity 0.2s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.6rem;
+    }
+
+        .btn-modern:hover {
+            color: white;
+            opacity: 0.95;
+            transform: translateY(-1px);
         }
-    </tbody>
-</table>
+
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 1.8rem;
+    }
+
+    .stat-card {
+        border-radius: 24px;
+        padding: 1.6rem;
+        border: 1px solid rgba(255,255,255,0.08);
+        box-shadow: 0 12px 30px rgba(0,0,0,0.25);
+    }
+
+        .stat-card.green {
+            background: linear-gradient(180deg, rgba(0, 53, 45, 0.92), rgba(0, 28, 25, 0.98));
+            border-color: rgba(16, 185, 129, 0.35);
+        }
+
+        .stat-card.blue {
+            background: linear-gradient(180deg, rgba(18, 20, 70, 0.92), rgba(11, 13, 46, 0.98));
+            border-color: rgba(99, 102, 241, 0.35);
+        }
+
+        .stat-card.purple {
+            background: linear-gradient(180deg, rgba(43, 17, 70, 0.92), rgba(28, 11, 46, 0.98));
+            border-color: rgba(168, 85, 247, 0.35);
+        }
+
+    .stat-top {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        margin-bottom: 1.1rem;
+    }
+
+    .stat-icon {
+        width: 60px;
+        height: 60px;
+        border-radius: 18px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        font-weight: 800;
+        color: white;
+        flex-shrink: 0;
+    }
+
+    .stat-card.green .stat-icon {
+        background: rgba(16, 185, 129, 0.18);
+        color: #00f5b0;
+    }
+
+    .stat-card.blue .stat-icon {
+        background: rgba(99, 102, 241, 0.18);
+        color: #7c8cff;
+    }
+
+    .stat-card.purple .stat-icon {
+        background: rgba(168, 85, 247, 0.18);
+        color: #d18bff;
+    }
+
+    .stat-label {
+        color: #a8b3c7;
+        font-size: 1rem;
+        font-weight: 700;
+        margin: 0;
+    }
+
+    .stat-value {
+        font-size: 2.2rem;
+        font-weight: 800;
+        margin: 0;
+    }
+
+    .stat-card.green .stat-value {
+        color: #00f5b0;
+    }
+
+    .stat-card.blue .stat-value {
+        color: #7c8cff;
+    }
+
+    .stat-card.purple .stat-value {
+        color: #d18bff;
+    }
+
+    .table-panel {
+        background: linear-gradient(180deg, rgba(20, 25, 41, 0.94), rgba(13, 17, 31, 0.98));
+        border: 1px solid rgba(255,255,255,0.08);
+        border-radius: 24px;
+        box-shadow: 0 12px 30px rgba(0,0,0,0.25);
+        overflow: hidden;
+    }
+
+    .table-panel-header {
+        padding: 1.7rem 1.8rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 1rem;
+        flex-wrap: wrap;
+        border-bottom: 1px solid rgba(255,255,255,0.07);
+    }
+
+    .table-title {
+        margin: 0;
+        font-size: 1.9rem;
+        font-weight: 800;
+        color: #ffffff;
+    }
+
+    .btn-secondary-modern {
+        background: rgba(255,255,255,0.06);
+        border: 1px solid rgba(255,255,255,0.06);
+        color: #ffffff;
+        border-radius: 16px;
+        padding: 0.85rem 1.2rem;
+        font-weight: 700;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.55rem;
+    }
+
+        .btn-secondary-modern:hover {
+            color: #ffffff;
+            background: rgba(255,255,255,0.10);
+        }
+
+    .table-responsive {
+        overflow-x: auto;
+    }
+
+    .modern-table {
+        width: 100%;
+        margin: 0;
+        border-collapse: collapse;
+    }
+
+        .modern-table thead {
+            background: rgba(255,255,255,0.05);
+        }
+
+        .modern-table th,
+        .modern-table td {
+            padding: 1.35rem 1.2rem;
+            text-align: left;
+            border-bottom: 1px solid rgba(255,255,255,0.07);
+            vertical-align: middle;
+        }
+
+        .modern-table th {
+            color: #9ca3af;
+            font-size: 0.98rem;
+            font-weight: 700;
+            white-space: nowrap;
+        }
+
+        .modern-table td {
+            color: #dbe4f0;
+            font-size: 1rem;
+        }
+
+    .student-cell {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        min-width: 220px;
+    }
+
+    .student-avatar {
+        width: 52px;
+        height: 52px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 800;
+        font-size: 1rem;
+        color: white;
+        background: linear-gradient(135deg, #5b6cff, #a61cff);
+        flex-shrink: 0;
+    }
+
+    .student-name {
+        margin: 0;
+        color: #ffffff;
+        font-weight: 800;
+        font-size: 1rem;
+    }
+
+    .student-subtext {
+        color: #8a94a6;
+        font-size: 0.95rem;
+    }
+
+    .amount {
+        color: #00f5b0;
+        font-weight: 800;
+        font-size: 1rem;
+        white-space: nowrap;
+    }
+
+    .date-cell,
+    .method-cell,
+    .concept-cell,
+    .notes-cell {
+        color: #b8c2d3;
+    }
+
+    .status-badge {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0.55rem 0.95rem;
+        border-radius: 14px;
+        font-weight: 700;
+        font-size: 0.95rem;
+        white-space: nowrap;
+    }
+
+    .status-ok {
+        color: #00f5b0;
+        background: rgba(0, 245, 176, 0.12);
+        border: 1px solid rgba(0, 245, 176, 0.22);
+    }
+
+    .actions-cell form {
+        margin: 0;
+    }
+
+    .btn-delete-modern {
+        background: rgba(239, 68, 68, 0.12);
+        color: #ff7b8b;
+        border: 1px solid rgba(239, 68, 68, 0.18);
+        border-radius: 12px;
+        padding: 0.55rem 0.9rem;
+        font-weight: 700;
+    }
+
+        .btn-delete-modern:hover {
+            background: rgba(239, 68, 68, 0.18);
+            color: #ff9ca8;
+        }
+
+    .empty-state {
+        padding: 2rem 1.8rem;
+        color: #94a3b8;
+        margin: 0;
+    }
+
+    /* Modal */
+    .delete-modal-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(3, 7, 18, 0.72);
+        backdrop-filter: blur(6px);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        z-index: 9999;
+        padding: 1rem;
+    }
+
+        .delete-modal-overlay.show {
+            display: flex;
+        }
+
+    .delete-modal-box {
+        width: 100%;
+        max-width: 520px;
+        background: linear-gradient(180deg, rgba(20, 25, 41, 0.98), rgba(13, 17, 31, 1));
+        border: 1px solid rgba(255,255,255,0.08);
+        border-radius: 24px;
+        box-shadow: 0 24px 60px rgba(0,0,0,0.45);
+        overflow: hidden;
+        color: #f8fafc;
+    }
+
+    .delete-modal-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        padding: 1.3rem 1.4rem;
+        border-bottom: 1px solid rgba(255,255,255,0.07);
+    }
+
+    .delete-modal-title {
+        margin: 0;
+        font-size: 1.35rem;
+        font-weight: 800;
+        color: #ffffff;
+    }
+
+    .delete-modal-close {
+        border: none;
+        background: transparent;
+        color: #a9b2c5;
+        font-size: 1.8rem;
+        line-height: 1;
+        cursor: pointer;
+    }
+
+        .delete-modal-close:hover {
+            color: #ffffff;
+        }
+
+    .delete-modal-body {
+        padding: 1.4rem;
+    }
+
+    .delete-modal-text {
+        margin: 0 0 0.55rem 0;
+        color: #e5e7eb;
+        font-size: 1.05rem;
+        line-height: 1.5;
+    }
+
+    .delete-modal-subtext {
+        margin: 0.35rem 0 0 0;
+        color: #94a3b8;
+        font-size: 0.95rem;
+    }
+
+    .delete-modal-actions {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+        padding: 0 1.4rem 1.4rem 1.4rem;
+    }
+
+    .btn-cancel-delete,
+    .btn-confirm-delete {
+        border: none;
+        border-radius: 16px;
+        padding: 0.95rem 1rem;
+        font-size: 1rem;
+        font-weight: 800;
+        transition: 0.2s ease;
+    }
+
+    .btn-cancel-delete {
+        background: rgba(255,255,255,0.08);
+        color: #d4d9e4;
+    }
+
+        .btn-cancel-delete:hover {
+            background: rgba(255,255,255,0.12);
+            color: #ffffff;
+        }
+
+    .btn-confirm-delete {
+        color: white;
+        background: linear-gradient(90deg, #ef4444, #dc2626);
+        box-shadow: 0 12px 28px rgba(239, 68, 68, 0.28);
+    }
+
+        .btn-confirm-delete:hover {
+            opacity: 0.96;
+            transform: translateY(-1px);
+        }
+
+    @@media (max-width: 992px) {
+        .stats-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .payments-title {
+            font-size: 2.2rem;
+        }
+    }
+
+    @@media (max-width: 768px) {
+        .payments-page {
+            padding: 1rem;
+            border-radius: 18px;
+        }
+
+        .table-panel-header {
+            padding: 1.2rem;
+        }
+
+        .table-title {
+            font-size: 1.4rem;
+        }
+
+        .modern-table th,
+        .modern-table td {
+            padding: 1rem 0.8rem;
+        }
+    }
+
+    @@media (max-width: 640px) {
+        .delete-modal-actions {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+
+<div class="payments-page">
+    <div class="payments-header">
+        <div>
+            <h1 class="payments-title">Gestión de Pagos</h1>
+            <div class="payments-subtitle">Registra y monitorea los pagos escolares</div>
+        </div>
+
+        <a asp-action="Create" class="btn-modern">
+            <span>$</span>
+            <span>Registrar Pago</span>
+        </a>
+    </div>
+
+    <div class="stats-grid">
+        <div class="stat-card green">
+            <div class="stat-top">
+                <div class="stat-icon">✓</div>
+                <p class="stat-label">Recaudado Hoy</p>
+            </div>
+            <p class="stat-value">RD$ @recaudadoHoy.ToString("N2")</p>
+        </div>
+
+        <div class="stat-card blue">
+            <div class="stat-top">
+                <div class="stat-icon">↗</div>
+                <p class="stat-label">Pagos Este Mes</p>
+            </div>
+            <p class="stat-value">@pagosEsteMes</p>
+        </div>
+
+        <div class="stat-card purple">
+            <div class="stat-top">
+                <div class="stat-icon">▣</div>
+                <p class="stat-label">Métodos Activos</p>
+            </div>
+            <p class="stat-value">@metodosActivos</p>
+        </div>
+    </div>
+
+    <div class="table-panel">
+        <div class="table-panel-header">
+            <h2 class="table-title">Historial de Pagos</h2>
+            <button type="button" class="btn-secondary-modern" onclick="window.print()">
+                <span>↓</span>
+                <span>Exportar</span>
+            </button>
+        </div>
+
+        @if (pagos.Any())
+        {
+            <div class="table-responsive">
+                <table class="modern-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Estudiante</th>
+                            <th>Concepto</th>
+                            <th>Monto</th>
+                            <th>Método</th>
+                            <th>Fecha</th>
+                            <th>Estado</th>
+                            <th>Notas</th>
+                            @if (User.IsInRole("Admin") || User.IsInRole("Secretaria"))
+                            {
+                                <th>Acciones</th>
+                            }
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var pago in pagos)
+                        {
+                            var nombre = pago.Estudiante?.Nombre ?? "Sin estudiante";
+                            var iniciales = string.Join("",
+                            nombre.Split(' ', StringSplitOptions.RemoveEmptyEntries)
+                            .Take(2)
+                            .Select(x => char.ToUpper(x[0]))
+                            );
+
+                            <tr>
+                                <td>@pago.Id</td>
+
+                                <td>
+                                    <div class="student-cell">
+                                        <div class="student-avatar">@iniciales</div>
+                                        <div>
+                                            <p class="student-name">@nombre</p>
+                                            <div class="student-subtext">Pago registrado</div>
+                                        </div>
+                                    </div>
+                                </td>
+
+                                <td class="concept-cell">@pago.Concepto</td>
+
+                                <td class="amount">RD$ @pago.Monto.ToString("N2")</td>
+
+                                <td class="method-cell">@pago.Metodo</td>
+
+                                <td class="date-cell">@pago.Fecha.ToString("dd/MM/yyyy")</td>
+
+                                <td>
+                                    <span class="status-badge status-ok">Completado</span>
+                                </td>
+
+                                <td class="notes-cell">
+                                    @(string.IsNullOrWhiteSpace(pago.Notas) ? "-" : pago.Notas)
+                                </td>
+                                @if (User.IsInRole("Admin") || User.IsInRole("Secretaria"))
+                                {
+                                    <td class="actions-cell">
+
+                                        <form asp-action="Delete"
+                                        asp-route-id="@pago.Id"
+                                          method="post"
+                                          class="delete-payment-form">
+                                        @Html.AntiForgeryToken()
+                                        
+                                            <button type="button"
+                                            class="btn-delete-modern open-delete-payment-modal"
+                                                data-payment-id="@pago.Id"
+                                                data-student-name="@nombre"
+                                                data-payment-amount="@pago.Monto.ToString("N2")">
+                                            Eliminar
+                                        </button>
+                                    </form>
+                                </td>}
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+        else
+        {
+            <p class="empty-state">No hay pagos registrados todavía.</p>
+        }
+    </div>
+</div>
+
+<div id="deletePaymentModalOverlay" class="delete-modal-overlay">
+    <div class="delete-modal-box">
+        <div class="delete-modal-header">
+            <h3 class="delete-modal-title">Confirmar eliminación</h3>
+            <button type="button" id="closeDeletePaymentModal" class="delete-modal-close">×</button>
+        </div>
+
+        <div class="delete-modal-body">
+            <p class="delete-modal-text">
+                ¿Seguro que deseas eliminar el pago de
+                <strong id="deletePaymentStudentName">este estudiante</strong>?
+            </p>
+            <p class="delete-modal-subtext">
+                Monto: <strong id="deletePaymentAmount">RD$ 0.00</strong>
+            </p>
+            <p class="delete-modal-subtext">
+                Esta acción no se puede deshacer.
+            </p>
+        </div>
+
+        <div class="delete-modal-actions">
+            <button type="button" id="cancelDeletePaymentBtn" class="btn-cancel-delete">
+                Cancelar
+            </button>
+            <button type="button" id="confirmDeletePaymentBtn" class="btn-confirm-delete">
+                Sí, eliminar
+            </button>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        (function () {
+            const overlay = document.getElementById('deletePaymentModalOverlay');
+            const closeBtn = document.getElementById('closeDeletePaymentModal');
+            const cancelBtn = document.getElementById('cancelDeletePaymentBtn');
+            const confirmBtn = document.getElementById('confirmDeletePaymentBtn');
+            const studentName = document.getElementById('deletePaymentStudentName');
+            const paymentAmount = document.getElementById('deletePaymentAmount');
+            const openButtons = document.querySelectorAll('.open-delete-payment-modal');
+
+            let currentForm = null;
+
+            function openModal(form, name, amount) {
+                currentForm = form;
+                studentName.textContent = name || 'este estudiante';
+                paymentAmount.textContent = 'RD$ ' + (amount || '0.00');
+                overlay.classList.add('show');
+            }
+
+            function closeModal() {
+                overlay.classList.remove('show');
+                currentForm = null;
+            }
+
+            openButtons.forEach(btn => {
+                btn.addEventListener('click', function () {
+                    const form = this.closest('form');
+                    const name = this.getAttribute('data-student-name');
+                    const amount = this.getAttribute('data-payment-amount');
+                    openModal(form, name, amount);
+                });
+            });
+
+            if (closeBtn) closeBtn.addEventListener('click', closeModal);
+            if (cancelBtn) cancelBtn.addEventListener('click', closeModal);
+
+            if (overlay) {
+                overlay.addEventListener('click', function (e) {
+                    if (e.target === overlay) {
+                        closeModal();
+                    }
+                });
+            }
+
+            if (confirmBtn) {
+                confirmBtn.addEventListener('click', function () {
+                    if (currentForm) {
+                        currentForm.submit();
+                    }
+                });
+            }
+
+            document.addEventListener('keydown', function (e) {
+                if (e.key === 'Escape' && overlay && overlay.classList.contains('show')) {
+                    closeModal();
+                }
+            });
+        })();
+    </script>
+}

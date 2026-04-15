@@ -18,9 +18,19 @@ namespace Educobros.Controllers
         }
 
         // GET: /Estudiantes
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(string filtro)
         {
-            var estudiantes = await _context.Estudiantes.ToListAsync();
+            var query = _context.Estudiantes.AsQueryable();
+
+            if (filtro == "mora")
+                query = query.Where(e => e.MesesDebidos > 0);
+            else if (filtro == "aldia")
+                query = query.Where(e => e.MesesDebidos == 0);
+
+            var estudiantes = await query.ToListAsync();
+
+            ViewBag.Filtro = filtro;
+
             return View(estudiantes);
         }
 

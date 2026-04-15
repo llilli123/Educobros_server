@@ -4,17 +4,20 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace Educobros.Controllers
 {
-    [Authorize]
+    [Authorize(Roles = "Admin,Secretaria")]
     public class PagosController : Controller
     {
         private readonly EduCobrosContext _context;
+        private readonly IMemoryCache _cache;
 
-        public PagosController(EduCobrosContext context)
+        public PagosController(EduCobrosContext context, IMemoryCache cache)
         {
             _context = context;
+            _cache = cache;
         }
 
         // GET: Pagos
@@ -29,6 +32,7 @@ namespace Educobros.Controllers
         }
 
         // GET: Pagos/Create
+        [Authorize(Roles = "Admin,Secretaria")]
         public IActionResult Create(int? estudianteId)
         {
             CargarEstudiantes(estudianteId);
@@ -45,6 +49,7 @@ namespace Educobros.Controllers
         // POST: Pagos/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin,Secretaria")]
         public async Task<IActionResult> Create(Pago pago)
         {
             if (!ModelState.IsValid)
@@ -90,6 +95,7 @@ namespace Educobros.Controllers
         // GET: Pagos/Delete/5
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Delete(int id)
         {
             var pago = await _context.Pagos.FindAsync(id);

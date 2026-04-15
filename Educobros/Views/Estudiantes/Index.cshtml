@@ -2,53 +2,673 @@
 
 @{
     ViewData["Title"] = "Estudiantes";
+    var filtroActual = Context.Request.Query["filtro"].ToString().ToLower();
 }
 
-<h2>👨‍🎓 Estudiantes y Balances</h2>
+<style>
+    .students-page {
+        background: radial-gradient(circle at top left, rgba(91, 108, 255, 0.18), transparent 25%), radial-gradient(circle at bottom right, rgba(166, 28, 255, 0.12), transparent 25%), linear-gradient(135deg, #050816, #0b1020 45%, #0d1226);
+        min-height: calc(100vh - 120px);
+        padding: 2rem;
+        border-radius: 24px;
+        color: #f8fafc;
+    }
 
-<a asp-action="Create" class="btn btn-primary mb-3">
-    ➕ Nuevo Estudiante
-</a>
+    .students-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 1rem;
+        flex-wrap: wrap;
+        margin-bottom: 1.5rem;
+    }
 
-<table class="table table-striped">
-    <thead>
-        <tr>
-            <th>ID</th>
-            <th>Nombre</th>
-            <th>Grado</th>
-            <th>Mensualidad</th>
-            <th>Estado</th>
-            <th>Acciones</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var est in Model)
-        {
-            <tr>
-                <td>@est.Id</td>
-                <td>@est.Nombre</td>
-                <td>@est.Grado</td>
-                <td>RD$ @est.Mensualidad.ToString("N0")</td>
-                <td>@est.Estado</td>
-                <td>
-                    <form asp-action="Delete"
-                          asp-route-id="@est.Id"
-                          method="post"
-                          style="display:inline;">
-                        @Html.AntiForgeryToken()
-                        <button type="submit"
-                                class="btn btn-sm btn-danger"
-                                onclick="return confirm('¿Eliminar?')">
-                            🗑️
-                        </button>
-                    </form>
-                </td>
-            </tr>
+    .students-title {
+        font-size: 3rem;
+        font-weight: 800;
+        margin: 0;
+        letter-spacing: -0.03em;
+        color: #ffffff;
+    }
+
+    .students-subtitle {
+        margin-top: 0.35rem;
+        color: #94a3b8;
+        font-size: 1.08rem;
+    }
+
+    .btn-modern {
+        border: none;
+        border-radius: 18px;
+        padding: 1rem 1.4rem;
+        font-weight: 800;
+        text-decoration: none;
+        color: white;
+        background: linear-gradient(90deg, #5b6cff, #a61cff);
+        box-shadow: 0 10px 30px rgba(121, 78, 255, 0.28);
+        transition: transform 0.15s ease, opacity 0.2s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.7rem;
+    }
+
+        .btn-modern:hover {
+            color: white;
+            opacity: 0.96;
+            transform: translateY(-1px);
         }
-    </tbody>
-</table>
 
-<p>
-    Total: @Model.Count estudiantes |
-    En mora: @Model.Count(e => e.MesesDebidos > 0)
-</p>
+    .top-tools {
+        display: grid;
+        grid-template-columns: 1.3fr auto;
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+        align-items: center;
+    }
+
+    .search-box {
+        position: relative;
+    }
+
+    .search-input {
+        width: 100%;
+        border-radius: 18px;
+        border: 1px solid rgba(255,255,255,0.08);
+        background: rgba(255,255,255,0.05);
+        color: #ffffff;
+        padding: 1rem 1rem 1rem 3.2rem;
+        font-size: 1.08rem;
+        outline: none;
+        transition: 0.2s ease;
+    }
+
+        .search-input:focus {
+            border-color: rgba(91, 108, 255, 0.7);
+            box-shadow: 0 0 0 0.2rem rgba(91, 108, 255, 0.15);
+            background: rgba(255,255,255,0.07);
+        }
+
+        .search-input::placeholder {
+            color: #7f8aa3;
+        }
+
+    .search-icon {
+        position: absolute;
+        left: 16px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #7f8aa3;
+        font-size: 1.1rem;
+        pointer-events: none;
+    }
+
+    .filter-group {
+        display: flex;
+        gap: 0.75rem;
+        flex-wrap: wrap;
+    }
+
+    .filter-btn {
+        text-decoration: none;
+        border-radius: 16px;
+        padding: 0.95rem 1.25rem;
+        font-weight: 700;
+        background: rgba(255,255,255,0.05);
+        color: #b8c2d3;
+        transition: 0.2s ease;
+        border: 1px solid rgba(255,255,255,0.04);
+    }
+
+        .filter-btn:hover {
+            color: white;
+            background: rgba(255,255,255,0.09);
+        }
+
+        .filter-btn.active {
+            color: white;
+            background: linear-gradient(90deg, #5b6cff, #a61cff);
+            box-shadow: 0 10px 24px rgba(91, 108, 255, 0.28);
+            border-color: transparent;
+        }
+
+    .table-panel {
+        background: linear-gradient(180deg, rgba(20, 25, 41, 0.94), rgba(13, 17, 31, 0.98));
+        border: 1px solid rgba(255,255,255,0.08);
+        border-radius: 24px;
+        box-shadow: 0 12px 30px rgba(0,0,0,0.25);
+        overflow: hidden;
+    }
+
+    .table-responsive {
+        overflow-x: auto;
+    }
+
+    .modern-table {
+        width: 100%;
+        margin: 0;
+        border-collapse: collapse;
+    }
+
+        .modern-table thead {
+            background: rgba(255,255,255,0.05);
+        }
+
+        .modern-table th,
+        .modern-table td {
+            padding: 1.35rem 1.2rem;
+            text-align: left;
+            border-bottom: 1px solid rgba(255,255,255,0.07);
+            vertical-align: middle;
+        }
+
+        .modern-table th {
+            color: #9ca3af;
+            font-size: 0.98rem;
+            font-weight: 700;
+            white-space: nowrap;
+        }
+
+        .modern-table td {
+            color: #dbe4f0;
+            font-size: 1rem;
+        }
+
+    .student-cell {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        min-width: 240px;
+    }
+
+    .student-avatar {
+        width: 54px;
+        height: 54px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 800;
+        font-size: 1rem;
+        color: white;
+        background: linear-gradient(135deg, #5b6cff, #a61cff);
+        flex-shrink: 0;
+    }
+
+    .student-name {
+        margin: 0;
+        color: #ffffff;
+        font-weight: 800;
+        font-size: 1rem;
+    }
+
+    .student-subtext {
+        color: #8a94a6;
+        font-size: 0.95rem;
+    }
+
+    .estado-badge {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0.55rem 0.95rem;
+        border-radius: 14px;
+        font-weight: 700;
+        font-size: 0.95rem;
+        white-space: nowrap;
+    }
+
+    .estado-dia {
+        color: #00f5b0;
+        background: rgba(0, 245, 176, 0.12);
+        border: 1px solid rgba(0, 245, 176, 0.22);
+    }
+
+    .estado-mora {
+        color: #ff6b7d;
+        background: rgba(239, 68, 68, 0.12);
+        border: 1px solid rgba(239, 68, 68, 0.22);
+    }
+
+    .estado-pendiente {
+        color: #fbbf24;
+        background: rgba(245, 158, 11, 0.12);
+        border: 1px solid rgba(245, 158, 11, 0.22);
+    }
+
+    .money-ok {
+        color: #00f5b0;
+        font-weight: 800;
+        white-space: nowrap;
+    }
+
+    .money-due {
+        color: #ff6b7d;
+        font-weight: 800;
+        white-space: nowrap;
+    }
+
+    .action-form {
+        display: inline;
+    }
+
+    .btn-delete-modern {
+        background: rgba(239, 68, 68, 0.12);
+        color: #ff7b8b;
+        border: 1px solid rgba(239, 68, 68, 0.18);
+        border-radius: 12px;
+        padding: 0.55rem 0.9rem;
+        font-weight: 700;
+    }
+
+        .btn-delete-modern:hover {
+            background: rgba(239, 68, 68, 0.18);
+            color: #ff9ca8;
+        }
+
+    .summary-box {
+        margin-top: 1rem;
+        color: #94a3b8;
+        font-size: 1rem;
+        font-weight: 600;
+    }
+
+    .empty-state {
+        padding: 2rem 1.8rem;
+        color: #94a3b8;
+        margin: 0;
+    }
+
+    /* Modal */
+    .delete-modal-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(3, 7, 18, 0.72);
+        backdrop-filter: blur(6px);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        z-index: 9999;
+        padding: 1rem;
+    }
+
+        .delete-modal-overlay.show {
+            display: flex;
+        }
+
+    .delete-modal-box {
+        width: 100%;
+        max-width: 520px;
+        background: linear-gradient(180deg, rgba(20, 25, 41, 0.98), rgba(13, 17, 31, 1));
+        border: 1px solid rgba(255,255,255,0.08);
+        border-radius: 24px;
+        box-shadow: 0 24px 60px rgba(0,0,0,0.45);
+        overflow: hidden;
+        color: #f8fafc;
+    }
+
+    .delete-modal-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        padding: 1.3rem 1.4rem;
+        border-bottom: 1px solid rgba(255,255,255,0.07);
+    }
+
+    .delete-modal-title {
+        margin: 0;
+        font-size: 1.35rem;
+        font-weight: 800;
+        color: #ffffff;
+    }
+
+    .delete-modal-close {
+        border: none;
+        background: transparent;
+        color: #a9b2c5;
+        font-size: 1.8rem;
+        line-height: 1;
+        cursor: pointer;
+    }
+
+        .delete-modal-close:hover {
+            color: #ffffff;
+        }
+
+    .delete-modal-body {
+        padding: 1.4rem;
+    }
+
+    .delete-modal-text {
+        margin: 0 0 0.55rem 0;
+        color: #e5e7eb;
+        font-size: 1.05rem;
+        line-height: 1.5;
+    }
+
+    .delete-modal-subtext {
+        margin: 0;
+        color: #94a3b8;
+        font-size: 0.95rem;
+    }
+
+    .delete-modal-actions {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+        padding: 0 1.4rem 1.4rem 1.4rem;
+    }
+
+    .btn-cancel-delete,
+    .btn-confirm-delete {
+        border: none;
+        border-radius: 16px;
+        padding: 0.95rem 1rem;
+        font-size: 1rem;
+        font-weight: 800;
+        transition: 0.2s ease;
+    }
+
+    .btn-cancel-delete {
+        background: rgba(255,255,255,0.08);
+        color: #d4d9e4;
+    }
+
+        .btn-cancel-delete:hover {
+            background: rgba(255,255,255,0.12);
+            color: #ffffff;
+        }
+
+    .btn-confirm-delete {
+        color: white;
+        background: linear-gradient(90deg, #ef4444, #dc2626);
+        box-shadow: 0 12px 28px rgba(239, 68, 68, 0.28);
+    }
+
+        .btn-confirm-delete:hover {
+            opacity: 0.96;
+            transform: translateY(-1px);
+        }
+
+    @@media (max-width: 1100px) {
+        .top-tools {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    @@media (max-width: 768px) {
+        .students-page {
+            padding: 1rem;
+            border-radius: 18px;
+        }
+
+        .students-title {
+            font-size: 2rem;
+        }
+
+        .modern-table th,
+        .modern-table td {
+            padding: 1rem 0.8rem;
+        }
+    }
+
+    @@media (max-width: 640px) {
+        .delete-modal-actions {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+
+<div class="students-page">
+    <div class="students-header">
+        <div>
+            <h1 class="students-title">Estudiantes</h1>
+            <div class="students-subtitle">Gestiona los estudiantes registrados</div>
+        </div>
+        @if (User.IsInRole("Admin") || User.IsInRole("Secretaria"))
+        {
+            <a asp-action="Create" class="btn-modern">
+                <span>＋</span>
+            <span>Nuevo Estudiante</span>
+        </a>}
+    </div>
+
+    <div class="top-tools">
+        <div class="search-box">
+            <span class="search-icon">🔎</span>
+            <input type="text" id="studentSearch" class="search-input" placeholder="Buscar por nombre o grado..." />
+        </div>
+
+        <div class="filter-group">
+            <a asp-action="Index"
+               class="filter-btn @(string.IsNullOrEmpty(filtroActual) ? "active" : "")">
+                Todos
+            </a>
+
+            <a asp-action="Index"
+               asp-route-filtro="aldia"
+               class="filter-btn @(filtroActual == "aldia" ? "active" : "")">
+                Al Día
+            </a>
+
+            <a asp-action="Index"
+               asp-route-filtro="mora"
+               class="filter-btn @(filtroActual == "mora" ? "active" : "")">
+                En mora
+            </a>
+
+            <a asp-action="Index"
+               asp-route-filtro="pendiente"
+               class="filter-btn @(filtroActual == "pendiente" ? "active" : "")">
+                Pendiente
+            </a>
+        </div>
+    </div>
+
+    <div class="table-panel">
+        @if (Model != null && Model.Any())
+        {
+            <div class="table-responsive">
+                <table class="modern-table" id="studentsTable">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Estudiante</th>
+                            <th>Grado</th>
+                            <th>Mensualidad</th>
+                            <th>Estado</th>
+                            <th>Deuda</th>
+                            @if (User.IsInRole("Admin") || User.IsInRole("Secretaria"))
+                            {
+                                <th>Acciones</th>
+                            }
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var est in Model)
+                        {
+                            var iniciales = string.Join("",
+                            est.Nombre.Split(' ', StringSplitOptions.RemoveEmptyEntries)
+                            .Take(2)
+                            .Select(x => char.ToUpper(x[0]))
+                            );
+
+                            var deuda = est.Mensualidad * est.MesesDebidos;
+
+                            string estadoClase;
+                            string estadoTexto;
+
+                            if (est.MesesDebidos == 0)
+                            {
+                                estadoClase = "estado-dia";
+                                estadoTexto = "Al día";
+                            }
+                            else if (est.MesesDebidos <= 2)
+                            {
+                                estadoClase = "estado-pendiente";
+                                estadoTexto = $"Debe {est.MesesDebidos} mes(es)";
+                            }
+                            else
+                            {
+                                estadoClase = "estado-mora";
+                                estadoTexto = "En mora";
+                            }
+
+                            <tr>
+                                <td>@est.Id</td>
+
+                                <td>
+                                    <div class="student-cell">
+                                        <div class="student-avatar">@iniciales</div>
+                                        <div>
+                                            <p class="student-name">@est.Nombre</p>
+                                            <div class="student-subtext">ID estudiante: @est.Id</div>
+                                        </div>
+                                    </div>
+                                </td>
+
+                                <td>@est.Grado</td>
+
+                                <td>RD$ @est.Mensualidad.ToString("N2")</td>
+
+                                <td>
+                                    <span class="estado-badge @estadoClase">@estadoTexto</span>
+                                </td>
+
+                                <td class="@(deuda > 0 ? "money-due" : "money-ok")">
+                                    RD$ @deuda.ToString("N2")
+                                </td>
+                                @if (User.IsInRole("Admin") || User.IsInRole("Secretaria"))
+                                {
+                                    <td>
+                                        <form asp-action="Delete"
+                                          asp-route-id="@est.Id"
+                                          method="post"
+                                          class="action-form delete-form">
+                                        @Html.AntiForgeryToken()
+                                        <button type="button"
+                                                class="btn-delete-modern open-delete-modal"
+                                                data-student-name="@est.Nombre">
+                                            Eliminar
+                                        </button>
+                                    </form>
+                                </td>}
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+        else
+        {
+            <p class="empty-state">No hay estudiantes registrados.</p>
+        }
+    </div>
+
+    <div class="summary-box">
+        Total: @Model.Count estudiantes | En mora: @Model.Count(e => e.MesesDebidos > 0)
+    </div>
+</div>
+
+<div id="deleteModalOverlay" class="delete-modal-overlay">
+    <div class="delete-modal-box">
+        <div class="delete-modal-header">
+            <h3 class="delete-modal-title">Confirmar eliminación</h3>
+            <button type="button" id="closeDeleteModal" class="delete-modal-close">×</button>
+        </div>
+
+        <div class="delete-modal-body">
+            <p class="delete-modal-text">
+                ¿Seguro que deseas eliminar a <strong id="deleteStudentName">este estudiante</strong>?
+            </p>
+            <p class="delete-modal-subtext">
+                Esta acción no se puede deshacer.
+            </p>
+        </div>
+
+        <div class="delete-modal-actions">
+            <button type="button" id="cancelDeleteBtn" class="btn-cancel-delete">
+                Cancelar
+            </button>
+            <button type="button" id="confirmDeleteBtn" class="btn-confirm-delete">
+                Sí, eliminar
+            </button>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        (function () {
+            const searchInput = document.getElementById('studentSearch');
+            const table = document.getElementById('studentsTable');
+
+            if (searchInput && table) {
+                searchInput.addEventListener('keyup', function () {
+                    const filter = this.value.toLowerCase();
+                    const rows = table.querySelectorAll('tbody tr');
+
+                    rows.forEach(row => {
+                        const text = row.innerText.toLowerCase();
+                        row.style.display = text.includes(filter) ? '' : 'none';
+                    });
+                });
+            }
+        })();
+
+        (function () {
+            const overlay = document.getElementById('deleteModalOverlay');
+            const closeBtn = document.getElementById('closeDeleteModal');
+            const cancelBtn = document.getElementById('cancelDeleteBtn');
+            const confirmBtn = document.getElementById('confirmDeleteBtn');
+            const studentName = document.getElementById('deleteStudentName');
+            const openButtons = document.querySelectorAll('.open-delete-modal');
+
+            let currentForm = null;
+
+            function openModal(form, name) {
+                currentForm = form;
+                studentName.textContent = name || 'este estudiante';
+                overlay.classList.add('show');
+            }
+
+            function closeModal() {
+                overlay.classList.remove('show');
+                currentForm = null;
+            }
+
+            openButtons.forEach(btn => {
+                btn.addEventListener('click', function () {
+                    const form = this.closest('form');
+                    const name = this.getAttribute('data-student-name');
+                    openModal(form, name);
+                });
+            });
+
+            if (closeBtn) closeBtn.addEventListener('click', closeModal);
+            if (cancelBtn) cancelBtn.addEventListener('click', closeModal);
+
+            if (overlay) {
+                overlay.addEventListener('click', function (e) {
+                    if (e.target === overlay) {
+                        closeModal();
+                    }
+                });
+            }
+
+            if (confirmBtn) {
+                confirmBtn.addEventListener('click', function () {
+                    if (currentForm) {
+                        currentForm.submit();
+                    }
+                });
+            }
+
+            document.addEventListener('keydown', function (e) {
+                if (e.key === 'Escape' && overlay && overlay.classList.contains('show')) {
+                    closeModal();
+                }
+            });
+        })();
+    </script>
+}

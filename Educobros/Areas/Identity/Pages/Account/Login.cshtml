@@ -1,0 +1,414 @@
+﻿@page
+@model LoginModel
+
+@{
+    ViewData["Title"] = "Iniciar sesión";
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Login - EduCobros</title>
+
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <style>
+        :root {
+            --bg-1: #070b1a;
+            --bg-2: #0f1328;
+            --card: rgba(24, 27, 42, 0.92);
+            --card-border: rgba(255, 255, 255, 0.08);
+            --text: #f5f7ff;
+            --muted: #9aa3b2;
+            --input-bg: rgba(255, 255, 255, 0.05);
+            --input-border: rgba(255, 255, 255, 0.08);
+            --primary-1: #5b6cff;
+            --primary-2: #a61cff;
+            --btn-muted: rgba(255, 255, 255, 0.06);
+            --btn-muted-hover: rgba(255, 255, 255, 0.10);
+            --shadow: 0 20px 60px rgba(0, 0, 0, 0.45);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html, body {
+            height: 100%;
+            margin: 0;
+            font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+            color: var(--text);
+            background: radial-gradient(circle at top center, rgba(91, 108, 255, 0.16), transparent 30%), radial-gradient(circle at bottom right, rgba(166, 28, 255, 0.16), transparent 25%), linear-gradient(135deg, var(--bg-1), var(--bg-2));
+        }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            padding: 48px 16px 60px;
+            overflow-y: auto;
+        }
+
+        .login-shell {
+            width: 100%;
+            max-width: 1100px;
+            display: grid;
+            grid-template-columns: 1fr;
+            justify-items: center;
+            padding-top: 12px;
+        }
+
+        .login-wrapper {
+            width: 100%;
+            max-width: 560px;
+        }
+
+        .brand-box {
+            text-align: center;
+            margin-bottom: 28px;
+        }
+
+        .brand-icon {
+            width: 84px;
+            height: 84px;
+            margin: 0 auto 18px;
+            border-radius: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, var(--primary-1), var(--primary-2));
+            box-shadow: 0 10px 30px rgba(107, 76, 255, 0.35);
+            font-size: 2rem;
+            font-weight: 700;
+        }
+
+        .brand-title {
+            font-size: 3rem;
+            font-weight: 800;
+            margin: 0;
+            letter-spacing: -0.03em;
+        }
+
+        .brand-subtitle {
+            margin-top: 8px;
+            color: var(--muted);
+            font-size: 1.35rem;
+        }
+
+        .card-login {
+            background: var(--card);
+            border: 1px solid var(--card-border);
+            border-radius: 28px;
+            box-shadow: var(--shadow);
+            padding: 38px 40px 34px;
+            backdrop-filter: blur(10px);
+        }
+
+        .section-label {
+            font-size: 1.05rem;
+            font-weight: 700;
+            margin-bottom: 14px;
+            color: #d8dcef;
+        }
+
+        .role-picker {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin-bottom: 28px;
+        }
+
+        .role-btn {
+            border: 0;
+            border-radius: 16px;
+            padding: 13px 10px;
+            background: var(--btn-muted);
+            color: #b7bfd1;
+            font-size: 1.08rem;
+            font-weight: 700;
+            transition: 0.2s ease;
+        }
+
+            .role-btn:hover {
+                background: var(--btn-muted-hover);
+                color: #fff;
+            }
+
+            .role-btn.active {
+                color: #fff;
+                background: linear-gradient(135deg, var(--primary-1), #6e4dff);
+                box-shadow: 0 10px 24px rgba(91, 108, 255, 0.35);
+            }
+
+        .form-group {
+            margin-bottom: 24px;
+        }
+
+        .form-label {
+            color: #d8dcef;
+            font-weight: 700;
+            font-size: 1rem;
+            margin-bottom: 10px;
+            display: block;
+        }
+
+        .input-shell {
+            position: relative;
+        }
+
+            .input-shell .icon {
+                position: absolute;
+                left: 16px;
+                top: 50%;
+                transform: translateY(-50%);
+                color: #7f8798;
+                font-size: 1.1rem;
+                pointer-events: none;
+            }
+
+        .custom-input {
+            width: 100%;
+            border-radius: 18px;
+            border: 1px solid var(--input-border);
+            background: var(--input-bg);
+            color: #fff;
+            padding: 18px 18px 18px 52px;
+            font-size: 1.08rem;
+            outline: none;
+            transition: 0.2s ease;
+        }
+
+            .custom-input:focus {
+                border-color: rgba(91, 108, 255, 0.7);
+                box-shadow: 0 0 0 0.2rem rgba(91, 108, 255, 0.18);
+                background: rgba(255, 255, 255, 0.07);
+            }
+
+            .custom-input::placeholder {
+                color: #737b8d;
+            }
+
+        .row-options {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 26px;
+            flex-wrap: wrap;
+        }
+
+        .remember-box {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: var(--muted);
+            font-size: 1rem;
+            font-weight: 600;
+        }
+
+            .remember-box input {
+                width: 18px;
+                height: 18px;
+                accent-color: var(--primary-1);
+            }
+
+        .helper-link {
+            color: #8d92ff;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+            .helper-link:hover {
+                color: #a9adff;
+                text-decoration: underline;
+            }
+
+        .btn-login {
+            width: 100%;
+            border: 0;
+            border-radius: 18px;
+            padding: 18px;
+            color: white;
+            font-size: 1.35rem;
+            font-weight: 800;
+            background: linear-gradient(90deg, var(--primary-1), var(--primary-2));
+            box-shadow: 0 12px 30px rgba(120, 66, 255, 0.34);
+            transition: transform 0.15s ease, opacity 0.2s ease;
+        }
+
+            .btn-login:hover {
+                opacity: 0.96;
+                transform: translateY(-1px);
+            }
+
+        .demo-text {
+            text-align: center;
+            color: #727a8e;
+            margin-top: 24px;
+            font-size: 1rem;
+        }
+
+        .validation-summary-errors,
+        .text-danger,
+        .validation-summary-valid {
+            color: #ff98a6 !important;
+            font-size: 0.95rem;
+        }
+
+            .validation-summary-errors ul {
+                margin: 12px 0 0;
+                padding-left: 20px;
+            }
+
+        .footer-links {
+            margin-top: 18px;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+            .footer-links a {
+                color: #8d92ff;
+                text-decoration: none;
+            }
+
+                .footer-links a:hover {
+                    text-decoration: underline;
+                }
+
+        @@media (max-width: 640px) {
+            .brand-title {
+                font-size: 2.2rem;
+            }
+
+            .brand-subtitle {
+                font-size: 1.05rem;
+            }
+
+            .card-login {
+                padding: 26px 20px;
+                border-radius: 22px;
+            }
+
+            .role-picker {
+                grid-template-columns: 1fr;
+            }
+
+            .btn-login {
+                font-size: 1.15rem;
+            }
+
+            body {
+                padding: 28px 12px 40px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="login-shell">
+        <div class="login-wrapper">
+            <div class="brand-box">
+                <div class="brand-icon">🎓</div>
+                <h1 class="brand-title">EduCobros</h1>
+                <div class="brand-subtitle">Sistema de Gestión Escolar</div>
+            </div>
+
+            <div class="card-login">
+                <form id="account" method="post">
+                    <input type="hidden" asp-for="ReturnUrl" />
+
+                    <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                    <div class="section-label">Tipo de Usuario</div>
+                    <div class="role-picker">
+                        <button type="button" class="role-btn active"
+                                data-email="admin@educobros.com"
+                                data-role="Admin">
+                            Admin
+                        </button>
+
+                        <button type="button" class="role-btn"
+                                data-email="secretaria@educobros.com"
+                                data-role="Secretaria">
+                            Secretaria
+                        </button>
+
+                        <button type="button" class="role-btn"
+                                data-email="padre@educobros.com"
+                                data-role="Padre">
+                            Padre
+                        </button>
+                    </div>
+
+                    <div class="form-group">
+                        <label asp-for="Input.Email" class="form-label">Correo Electrónico</label>
+                        <div class="input-shell">
+                            <span class="icon">✉</span>
+                            <input asp-for="Input.Email"
+                                   class="custom-input"
+                                   autocomplete="username"
+                                   aria-required="true"
+                                   placeholder="usuario@educobros.com" />
+                        </div>
+                        <span asp-validation-for="Input.Email" class="text-danger"></span>
+                    </div>
+
+                    <div class="form-group">
+                        <label asp-for="Input.Password" class="form-label">Contraseña</label>
+                        <div class="input-shell">
+                            <span class="icon">🔒</span>
+                            <input asp-for="Input.Password"
+                                   class="custom-input"
+                                   autocomplete="current-password"
+                                   aria-required="true"
+                                   placeholder="••••••••" />
+                        </div>
+                        <span asp-validation-for="Input.Password" class="text-danger"></span>
+                    </div>
+
+                    <div class="row-options">
+                        <label asp-for="Input.RememberMe" class="remember-box">
+                            <input asp-for="Input.RememberMe" />
+                            <span>Recordarme</span>
+                        </label>
+
+                        
+                    </div>
+
+                    <button id="login-submit" type="submit" class="btn-login">
+                        Iniciar Sesión
+                    </button>
+
+                    <div class="demo-text">
+                        Cuentas demo:
+                        Admin123! / Secret123! / Padre123!
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <partial name="_ValidationScriptsPartial" />
+
+    <script>
+        const roleButtons = document.querySelectorAll('.role-btn');
+        const emailInput = document.getElementById('Input_Email');
+
+        roleButtons.forEach(btn => {
+            btn.addEventListener('click', function () {
+                roleButtons.forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+
+                const email = this.getAttribute('data-email');
+                if (emailInput && email) {
+                    emailInput.value = email;
+                }
+            });
+        });
+    </script>
+</body>
+</html>

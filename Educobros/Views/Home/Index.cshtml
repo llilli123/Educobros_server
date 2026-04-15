@@ -1,36 +1,377 @@
-﻿@{
-    ViewData["Title"] = "Home Page";
+﻿@model Educobros.Models.DashboardVM
+
+@{
+    ViewData["Title"] = "Dashboard";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
-</div>
-<!-- Agregar al final de la vista del Home/Index -->
-<div style="max-width:600px;margin:2rem auto">
-    <canvas id="graficaPagos"></canvas>
-</div>
-
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script>
-    async function cargarGrafica() {
-      const res = await fetch('/api/estudiantesapi/dashboard');
-      const data = await res.json();
-
-      new Chart(document.getElementById('graficaPagos'), {
-        type: 'doughnut',
-        data: {
-          labels: ['Recaudado', 'En Mora'],
-          datasets: [{
-            data: [data.totalRecaudado, data.totalMora],
-            backgroundColor: ['#34d399', '#fb7185'],
-            borderWidth: 0
-          }]
-        },
-        options: {
-          plugins: { legend: { position: 'bottom' } }
-        }
-      });
+<style>
+    .dashboard-page {
+        background: radial-gradient(circle at top left, rgba(91, 108, 255, 0.18), transparent 25%), radial-gradient(circle at bottom right, rgba(166, 28, 255, 0.12), transparent 25%), linear-gradient(135deg, #050816, #0b1020 45%, #0d1226);
+        min-height: calc(100vh - 120px);
+        padding: 2rem;
+        border-radius: 24px;
+        color: #f8fafc;
     }
-    cargarGrafica();
-</script>
+
+    .dashboard-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 1rem;
+        margin-bottom: 2rem;
+        flex-wrap: wrap;
+    }
+
+    .dashboard-title {
+        font-size: 3rem;
+        font-weight: 800;
+        margin: 0;
+        letter-spacing: -0.03em;
+        color: #ffffff;
+    }
+
+    .dashboard-subtitle {
+        margin-top: 0.35rem;
+        color: #94a3b8;
+        font-size: 1.08rem;
+    }
+
+    .dashboard-actions {
+        display: flex;
+        gap: 0.75rem;
+        flex-wrap: wrap;
+    }
+
+    .btn-modern {
+        border: none;
+        border-radius: 16px;
+        padding: 0.85rem 1.35rem;
+        font-weight: 700;
+        text-decoration: none;
+        color: white;
+        background: linear-gradient(90deg, #5b6cff, #a61cff);
+        box-shadow: 0 10px 30px rgba(121, 78, 255, 0.28);
+        transition: transform 0.15s ease, opacity 0.2s ease;
+    }
+
+        .btn-modern:hover {
+            color: white;
+            opacity: 0.95;
+            transform: translateY(-1px);
+        }
+
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 1.25rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .stat-card,
+    .panel-card {
+        background: linear-gradient(180deg, rgba(20, 25, 41, 0.94), rgba(13, 17, 31, 0.98));
+        border: 1px solid rgba(255,255,255,0.08);
+        border-radius: 22px;
+        box-shadow: 0 12px 30px rgba(0,0,0,0.25);
+    }
+
+    .stat-card {
+        padding: 1.35rem 1.25rem;
+    }
+
+    .stat-label {
+        color: #94a3b8;
+        font-size: 0.95rem;
+        font-weight: 600;
+        margin-bottom: 0.65rem;
+    }
+
+    .stat-value {
+        font-size: 2rem;
+        font-weight: 800;
+        color: #ffffff;
+        line-height: 1.1;
+    }
+
+        .stat-value.success {
+            color: #22c55e;
+        }
+
+        .stat-value.warning {
+            color: #f59e0b;
+        }
+
+        .stat-value.danger {
+            color: #fb7185;
+        }
+
+    .content-grid {
+        display: grid;
+        grid-template-columns: 1.3fr 0.9fr;
+        gap: 1.5rem;
+    }
+
+    .panel-card {
+        padding: 1.35rem;
+    }
+
+    .panel-title {
+        font-size: 1.35rem;
+        font-weight: 700;
+        color: #ffffff;
+        margin-bottom: 1rem;
+    }
+
+    .chart-box {
+        min-height: 420px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+        .chart-box canvas {
+            max-width: 100%;
+            max-height: 380px;
+        }
+
+    .payments-list {
+        display: flex;
+        flex-direction: column;
+        gap: 0.9rem;
+    }
+
+    .payment-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        padding: 0.95rem 1rem;
+        border-radius: 16px;
+        background: rgba(255,255,255,0.03);
+        border: 1px solid rgba(255,255,255,0.05);
+    }
+
+    .payment-left {
+        display: flex;
+        align-items: center;
+        gap: 0.9rem;
+        min-width: 0;
+    }
+
+    .payment-avatar {
+        width: 46px;
+        height: 46px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 800;
+        font-size: 0.95rem;
+        color: white;
+        background: linear-gradient(135deg, #5b6cff, #a61cff);
+        flex-shrink: 0;
+    }
+
+    .payment-name {
+        margin: 0;
+        color: #ffffff;
+        font-weight: 700;
+        font-size: 1rem;
+    }
+
+    .payment-date {
+        color: #94a3b8;
+        font-size: 0.9rem;
+    }
+
+    .payment-amount {
+        color: #22c55e;
+        font-weight: 800;
+        font-size: 1rem;
+        white-space: nowrap;
+    }
+
+    .empty-state {
+        color: #94a3b8;
+        margin: 0;
+        padding: 1rem 0;
+    }
+
+    .success-alert-modern {
+        background: rgba(34,197,94,0.12);
+        color: #86efac;
+        border: 1px solid rgba(34,197,94,0.28);
+        border-radius: 16px;
+        padding: 1rem 1.1rem;
+        margin-bottom: 1.5rem;
+    }
+
+    @@media (max-width: 1200px) {
+        .stats-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        .content-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    @@media (max-width: 768px) {
+        .dashboard-page {
+            padding: 1rem;
+            border-radius: 18px;
+        }
+
+        .dashboard-title {
+            font-size: 2rem;
+        }
+
+        .stats-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .chart-box {
+            min-height: 280px;
+        }
+
+        .payment-item {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+    }
+</style>
+
+<div class="dashboard-page">
+    <div class="dashboard-header">
+        <div>
+            <h1 class="dashboard-title">Dashboard de Educobros</h1>
+            <div class="dashboard-subtitle">Resumen general del sistema de cobros escolares</div>
+        </div>
+
+        <div class="dashboard-actions">
+            <a asp-controller="Estudiantes" asp-action="Index" class="btn-modern">Ver Estudiantes</a>
+            @if (User.IsInRole("Admin") || User.IsInRole("Secretaria"))
+            {
+                <a asp-controller="Pagos" asp-action="Create" class="btn-modern">Registrar Pago</a>
+            }
+        </div>
+    </div>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="success-alert-modern">
+            @TempData["Success"]
+        </div>
+    }
+
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-label">Total de Estudiantes</div>
+            <div class="stat-value">@Model.TotalEstudiantes</div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-label">Estudiantes en Mora</div>
+            <div class="stat-value danger">@Model.Pendientes</div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-label">Total Recaudado</div>
+            <div class="stat-value success">RD$ @Model.Recaudado.ToString("N2")</div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-label">Monto en Mora</div>
+            <div class="stat-value warning">RD$ @Model.Mora.ToString("N2")</div>
+        </div>
+    </div>
+
+    <div class="content-grid">
+        <div class="panel-card">
+            <div class="panel-title">Gráfico de Recaudación vs Mora</div>
+            <div class="chart-box">
+                <canvas id="graficaPagos"></canvas>
+            </div>
+        </div>
+
+        <div class="panel-card">
+            <div class="panel-title">Últimos Pagos</div>
+
+            @if (Model.UltimosPagos != null && Model.UltimosPagos.Any())
+            {
+                <div class="payments-list">
+                    @foreach (var pago in Model.UltimosPagos)
+                    {
+                        var nombre = pago.Estudiante?.Nombre ?? "Sin estudiante";
+                        var iniciales = string.Join("",
+                        nombre.Split(' ', StringSplitOptions.RemoveEmptyEntries)
+                        .Take(2)
+                        .Select(x => char.ToUpper(x[0]))
+                        );
+
+                        <div class="payment-item">
+                            <div class="payment-left">
+                                <div class="payment-avatar">@iniciales</div>
+                                <div>
+                                    <p class="payment-name">@nombre</p>
+                                    <div class="payment-date">@pago.Fecha.ToString("dd/MM/yyyy")</div>
+                                </div>
+                            </div>
+
+                            <div class="payment-amount">
+                                RD$ @pago.Monto.ToString("N2")
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+            else
+            {
+                <p class="empty-state">No hay pagos registrados todavía.</p>
+            }
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        async function cargarGrafica() {
+            const res = await fetch('/api/estudiantesapi/dashboard');
+            const data = await res.json();
+
+            new Chart(document.getElementById('graficaPagos'), {
+                type: 'doughnut',
+                data: {
+                    labels: ['Recaudado', 'En Mora'],
+                    datasets: [{
+                        data: [data.totalRecaudado, data.totalMora],
+                        backgroundColor: ['#5b6cff', '#fb7185'],
+                        borderWidth: 0,
+                        hoverOffset: 10
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '62%',
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                color: '#cbd5e1',
+                                padding: 18,
+                                font: {
+                                    size: 13,
+                                    weight: '600'
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        cargarGrafica();
+    </script>
+}

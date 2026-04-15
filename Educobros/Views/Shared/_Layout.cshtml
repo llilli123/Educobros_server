@@ -1,64 +1,145 @@
 ﻿<!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="theme-color" content="#1e3a5f">
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="theme-color" content="#0b1020" />
     <title>@ViewData["Title"] - Educobros</title>
+
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/Educobros.styles.css" asp-append-version="true" />
+
+    <style>
+        html {
+            font-size: 14px;
+        }
+
+        @@media (min-width: 768px) {
+            html {
+                font-size: 16px;
+            }
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            background: radial-gradient(circle at top left, rgba(91, 108, 255, 0.10), transparent 20%), radial-gradient(circle at bottom right, rgba(166, 28, 255, 0.08), transparent 20%), linear-gradient(135deg, #030712, #0b1020 45%, #111827);
+            color: #f8fafc;
+            font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .app-navbar {
+            background: rgba(8, 12, 24, 0.88);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.22);
+        }
+
+            .app-navbar .navbar-brand {
+                color: #ffffff !important;
+                font-weight: 800;
+                letter-spacing: -0.02em;
+            }
+
+            .app-navbar .nav-link {
+                color: #cbd5e1 !important;
+                font-weight: 600;
+                transition: 0.2s ease;
+            }
+
+                .app-navbar .nav-link:hover {
+                    color: #ffffff !important;
+                }
+
+        .navbar-toggler {
+            border-color: rgba(255,255,255,0.2);
+        }
+
+            .navbar-toggler:focus {
+                box-shadow: none;
+            }
+
+        .layout-shell {
+            width: 100%;
+            max-width: 1500px;
+            margin: 0 auto;
+            padding: 1.25rem;
+        }
+
+        .main-content {
+            min-height: calc(100vh - 170px);
+        }
+
+        .app-footer {
+            border-top: 1px solid rgba(255,255,255,0.08);
+            color: #94a3b8;
+            padding: 1rem 0;
+            margin-top: 1rem;
+        }
+
+            .app-footer a {
+                color: #a5b4fc;
+                text-decoration: none;
+            }
+
+                .app-footer a:hover {
+                    color: #c4b5fd;
+                    text-decoration: underline;
+                }
+    </style>
 </head>
 <body>
     <header>
-        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
+        <nav class="navbar navbar-expand-sm app-navbar mb-3">
             <div class="container-fluid">
                 <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">Educobros</a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
-                        aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
-                    <ul class="navbar-nav flex-grow-1">
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
-                        </li>
 
-                        @if (User.IsInRole("Admin") || User.IsInRole("Secretaria"))
-                        {
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNavbar"
+                        aria-controls="mainNavbar" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon" style="filter: invert(1);"></span>
+                </button>
+
+                <div id="mainNavbar" class="collapse navbar-collapse">
+                    <ul class="navbar-nav me-auto align-items-sm-center">
                         <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Estudiantes" asp-action="Index">Estudiantes</a>
+                            <a class="nav-link" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
                         </li>
 
                         
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Pagos" asp-action="Index">Pagos</a>
-                        </li>
+                            <li class="nav-item">
+                                <a class="nav-link" asp-area="" asp-controller="Estudiantes" asp-action="Index">Estudiantes</a>
+                            </li>
+                        @if (User.IsInRole("Admin") || User.IsInRole("Secretaria"))
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link" asp-area="" asp-controller="Pagos" asp-action="Index">Pagos</a>
+                            </li>
                         }
 
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
-                        </li>
-
-                        <partial name="_LoginPartial" />
+                        
                     </ul>
+
+                    <partial name="_LoginPartial" />
                 </div>
             </div>
         </nav>
     </header>
-    <div class="container">
-        <main role="main" class="pb-3">
+
+    <div class="layout-shell">
+        <main role="main" class="main-content pb-3">
             @RenderBody()
         </main>
     </div>
 
-    <footer class="border-top footer text-muted">
-        <div class="container">
+    <footer class="app-footer">
+        <div class="layout-shell">
             &copy; 2026 - Educobros - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
         </div>
     </footer>
+
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
